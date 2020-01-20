@@ -1,3 +1,56 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+
+index:
+    path: /
+    controller: App\Controller\UserController::index
+    
+create:
+    path: /create
+    controller: App\Controller\UserController::create
+    methods: [POST]
+
+login:
+    path: /login
+    controller: App\Controller\UserController::login
+    methods: [POST]
+    
+edit:
+    path: /edit
+    controller: App\Controller\UserController::edit
+    methods: [PUT]
+    
+#####Controlador de estaciones
+station:
+    path: /stations
+    controller: App\Controller\StationController::getStations
+    methods: [GET]
+
+sensors_by_stations:
+    path: /stations/{id}/sensors
+    controller: App\Controller\StationController::getSensorsByStation
+    methods: [GET]
+    
+
+
+edit_sensor:
+    path: /sensor/{id}
+    controller: App\Controller\StationController::editSensorsById
+    methods: [PUT]
+
+historial:
+    path: historial/station/{idStation}/sensor/{id}
+    controller: App\Controller\StationController::historial
+    methods: [GET]
+   
+tiempo_real:
+    path: tr/station/{idStation}/sensor/{id}&{option}
+    controller: App\Controller\StationController::tiempo_real
+    methods: [GET]
+#####Controlador de insercion de datos
+
+insert:
+    path: /insert/{name}
+    controller: App\Controller\InsertionController::Insert
+    methods: [POST]
