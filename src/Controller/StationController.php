@@ -172,8 +172,8 @@ class StationController extends AbstractController {
 
         return new JsonResponse($data);
     }
-    
-    public function tiempo_real(Request $request, JwtAuth $jwt_auth, $option = null, $idStation = null, $id = null){
+
+    public function tiempo_real(Request $request, JwtAuth $jwt_auth, $option = null, $idStation = null, $id = null) {
         //data por defecto
         $data = [
             'status' => 'error',
@@ -184,23 +184,38 @@ class StationController extends AbstractController {
         $token = $request->headers->get('Authorization');
         //verificamos el token
         $authToken = $jwt_auth->checkToken($token);
-        if($authToken){
-            if($option !=null && $idStation != null && $id != null){
-                
+        if ($authToken) {
+            if ($option != null && $idStation != null && $id != null) {
+                $em = $this->getDoctrine()->getManager();
+                $conn = $em->getConnection();
+                (int) $id;
+                (int) $idStation;
                 //recogemos la informacion
-                switch (option){
-                    
-                    case 1: 
-                        
-                        
-                        
-                        break;
-                    default: 
-                        $sql = "TiempoReal_DataDefault(id INT, idStation INT)"
-                        
-                //preparamos los datos para un highcharts
+                switch ($option) {
 
-                //regresamos la respuesta
+                    case 1:
+                        $sql = "CALL TiempoReal_Data1(:id, :idStation)";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute(['id' => $id, 'idStation' => $idStation]);
+                        $datos = $stmt->fetchAll();
+                        //preparamos los datos para un highcharts
+                        if ($datos != null) {
+                            //regresamos la respuesta
+                            $data = $datos;
+                        }
+                        break;
+                    default:
+                        $sql = "CALL TiempoReal_DataDefault(:id, :idStation)";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute(['id' => $id, 'idStation' => $idStation]);
+                        $datos = $stmt->fetchAll();
+                        //preparamos los datos para un highcharts
+                        if ($datos != null) {
+                            //regresamos la respuesta
+                            $data = $datos;
+                        }
+                       
+                        break;
                 }
             }
         }
