@@ -105,7 +105,7 @@ class UserController extends AbstractController {
                         'status' => 'success',
                         'code' => 200,
                         'message' => 'el usuario se ha creado.',
-                        'error' => $user
+                        'usuario' => $user
                     ];
                 } else {
                     $data = [
@@ -148,17 +148,24 @@ class UserController extends AbstractController {
               
                 if ($gettoken) {
                     $signup = $jwt_auth->signup($email, $pwd, $gettoken);
+                     $data = [
+                        'status' => 'success',
+                        'code' => 200,
+                        'token' => $signup 
+                    ];
                 } else {
                     $signup = $jwt_auth->signup($email, $pwd);
+                    $data = [
+                        'status' => 'success',
+                        'code' => 200,
+                        'user' => $signup 
+                    ];
+               
                 }
-
-                //crear servicio de jwt
-
-                return new JsonResponse($signup);
             }
         }
         //respuesta 
-        return $this->resjson($data);
+        return new JsonResponse($data);
     }
     
       public function edit(Request $request, JwtAuth $jwt_auth)

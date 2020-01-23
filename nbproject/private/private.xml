@@ -5,6 +5,8 @@
         <group>
             <file>file:/C:/xampp/htdocs/PersicaV2.0/API_PD/config/routes.yaml</file>
             <file>file:/C:/xampp/htdocs/PersicaV2.0/API_PD/src/Controller/StationController.php</file>
+            <file>file:/C:/xampp/htdocs/PersicaV2.0/API_PD/src/Controller/UserController.php</file>
+            <file>file:/C:/xampp/htdocs/PersicaV2.0/API_PD/src/Services/JwtAuth.php</file>
         </group>
     </open-files>
 </project-private>
