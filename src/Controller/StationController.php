@@ -47,7 +47,14 @@ class StationController extends AbstractController {
         if ($authCheck) {
             //recuperamos los datos de la estacion 
             $em = $this->getDoctrine()->getManager();
-            $data = $this->getDoctrine()->getRepository(Stations::class)->findAll();
+            $datos = $this->getDoctrine()->getRepository(Stations::class)->findAll();
+
+            $data = [
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'correcto',
+                'stations' => $datos
+            ];
         }
 
         return $this->resjson($data);
@@ -68,15 +75,51 @@ class StationController extends AbstractController {
 
             if ($id != null) {
                 $em = $this->getDoctrine()->getManager();
-                $data = $this->getDoctrine()->getRepository(Sensors::class)->findBy([
+                $datos = $this->getDoctrine()->getRepository(Sensors::class)->findBy([
                     'stationid' => $id
                 ]);
+                $data = [
+                    'status' => 'success',
+                    'code' => 200,
+                    'message' => 'correcto',
+                    'sensors' => $datos
+                ];
             }
             //recuperar los sensores de la estacion
         }
         return $this->resjson($data);
     }
+/* -------- new 23/01/2019 ---------- */
+    public function getSensor(Request $request, JwtAuth $jwt_auth = null, $id = null) {
+        //respuesta por defecto
+        $data = [
+            'status' => 'error',
+            'code' => 500,
+            'message' => 'error no existen sensores en la estacion'
+        ];
+        //recoger el token
+        $token = $request->headers->get('Authorization', null);
+        //comprobar si es correcto
+        $authCheck = $jwt_auth->checkToken($token);
+        if ($authCheck) {
 
+            if ($id != null) {
+                $em = $this->getDoctrine()->getManager();
+                $datos = $this->getDoctrine()->getRepository(Sensors::class)->findBy([
+                    'id' => $id
+                ]);
+                $data = [
+                    'status' => 'success',
+                    'code' => 200,
+                    'message' => 'correcto',
+                    'sensors' => $datos
+                ];
+            }
+            //recuperar los sensores de la estacion
+        }
+        return $this->resjson($data);
+    }
+/* -------- new 23/01/2019 ---------- */
     public function editSensorsById(Request $request, JwtAuth $jwt_auth = null, $id = null) {
         //respuesta por defecto
         $data = [
@@ -125,6 +168,43 @@ class StationController extends AbstractController {
             }
         }
         return $this->resjson($data);
+    }
+
+    public function LastData(Request $request, JwtAuth $jwt_auth, $id = null) {
+        //data por defecto
+        $data = [
+            'status' => 'error',
+            'code' => 500,
+            'message' => 'error al recuperar los datos'
+        ];
+        //recogemos el token
+        $token = $request->headers->get('Authorization');
+        //verificamos el token
+        $authToken = $jwt_auth->checkToken($token);
+        if ($authToken) {
+            if ($id != null) {
+                $em = $this->getDoctrine()->getManager();
+                $conn = $em->getConnection();
+                (int) $id;
+                //recogemos la informacion
+
+                $sql = "CALL Last_Data(:id)";
+                $stmt = $conn->prepare($sql);
+                $stmt->execute(['id' => $id]);
+                $datos = $stmt->fetchAll();
+                //preparamos los datos para un highcharts
+                if ($datos != null) {
+                    //regresamos la respuesta
+                    $data =[
+                        'status' => 'success',
+                        'code' => 200,
+                        'message' => 'correcto',
+                        'data' => $datos
+                    ];
+                }
+            }
+        }
+        return new JsonResponse($data);
     }
 
     public function historial(Request $request, JwtAuth $jwt_auth, $idStation = null, $id = null) {
@@ -214,7 +294,7 @@ class StationController extends AbstractController {
                             //regresamos la respuesta
                             $data = $datos;
                         }
-                       
+
                         break;
                 }
             }

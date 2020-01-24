@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name="sensors", indexes={@ORM\Index(name="sensors_ibfk_1", columns={"StationId"})})
  * @ORM\Entity
  */
-class Sensors {
+class Sensors implements \JsonSerializable {
 
     /**
      * @var int
@@ -115,4 +115,14 @@ class Sensors {
         return $this;
     }
 
+     public function jsonSerialize(): array{
+         return [
+             'id' => $this->id,
+             'name' => $this->name,
+             'status' => $this->status,
+             'minValue' => $this->minValue,
+             'maxValue' => $this->maxValue
+             
+         ];
+    }
 }

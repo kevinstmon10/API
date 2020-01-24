@@ -27,25 +27,35 @@ station:
     controller: App\Controller\StationController::getStations
     methods: [GET]
 
+
 sensors_by_stations:
     path: /stations/{id}/sensors
     controller: App\Controller\StationController::getSensorsByStation
     methods: [GET]
-    
-
-
+##############new 23/01/2019
+sensor:
+    path: /sensor/{id}
+    controller: App\Controller\StationController::getSensor
+    methods: [GET]
+##############new 23/01/2019
 edit_sensor:
     path: /sensor/{id}
     controller: App\Controller\StationController::editSensorsById
     methods: [PUT]
 
+
+Last_data:
+    path: /sensor/{id}
+    controller: App\Controller\StationController::LastData
+    methods: [GET]
+    
 historial:
-    path: historial/station/{idStation}/sensor/{id}
+    path: /historial/station/{idStation}/sensor/{id}
     controller: App\Controller\StationController::historial
     methods: [GET]
    
 tiempo_real:
-    path: tr/station/{idStation}/sensor/{id}&{option}
+    path: /tr/station/{idStation}/sensor/{id}&{option}
     controller: App\Controller\StationController::tiempo_real
     methods: [GET]
 #####Controlador de insercion de datos
