@@ -89,7 +89,9 @@ class StationController extends AbstractController {
         }
         return $this->resjson($data);
     }
-/* -------- new 23/01/2019 ---------- */
+
+    /* -------- new 23/01/2019 ---------- */
+
     public function getSensor(Request $request, JwtAuth $jwt_auth = null, $id = null) {
         //respuesta por defecto
         $data = [
@@ -119,7 +121,9 @@ class StationController extends AbstractController {
         }
         return $this->resjson($data);
     }
-/* -------- new 23/01/2019 ---------- */
+
+    /* -------- new 23/01/2019 ---------- */
+
     public function editSensorsById(Request $request, JwtAuth $jwt_auth = null, $id = null) {
         //respuesta por defecto
         $data = [
@@ -139,34 +143,46 @@ class StationController extends AbstractController {
             if ($id != null) {
 
                 if (!empty($json)) {
-                    $maxV = (!empty($params->maxvalue)) ? $params->maxvalue : null;
-                    $minV = (!empty($params->minvalue)) ? $params->minvalue : null;
+                    $maxV = $params->maxValue;
+                    $minV = $params->minValue;
 
-                    if (!empty($maxV) && !empty($minV)) {
-                        //buscar el sensor a editar
-                        $em = $this->getDoctrine()->getManager();
-                        $sensor_repo = $this->getDoctrine()->getRepository(Sensors::class);
-                        $sensor = $sensor_repo->findOneBy([
-                            'id' => $id
-                        ]);
-                        //asginar los nuevos valores
-                        $sensor->setMinValue($minV);
-                        $sensor->setMaxValue($maxV);
 
-                        //guardar los datos
-                        $em->persist($sensor);
-                        $em->flush();
+                    //buscar el sensor a editar
+                    $em = $this->getDoctrine()->getManager();
+                    $sensor_repo = $this->getDoctrine()->getRepository(Sensors::class);
+                    $sensor = $sensor_repo->findOneBy([
+                        'id' => $id
+                    ]);
+                    //asginar los nuevos valores
+                    $sensor->setMinValue($minV);
+                    $sensor->setMaxValue($maxV);
 
-                        $data = [
-                            'status' => 'success',
-                            'code' => 200,
-                            'message' => 'Sensor actualizado',
-                            'sensor' => $sensor
-                        ];
-                    }
+                    //guardar los datos
+                    $em->persist($sensor);
+                    $em->flush();
+
+                    $data = [
+                        'status' => 'success',
+                        'code' => 200,
+                        'message' => 'Sensor actualizado',
+                        'sensor' => $sensor
+                    ];
+                } else {
+                    $data = [
+                        'status' => 'error',
+                        'code' => 500,
+                        'message' => 'error json malo'
+                    ];
                 }
             }
+        } else {
+            $data = [
+                'status' => 'error',
+                'code' => 500,
+                'message' => 'error con el token'
+            ];
         }
+
         return $this->resjson($data);
     }
 
@@ -195,7 +211,7 @@ class StationController extends AbstractController {
                 //preparamos los datos para un highcharts
                 if ($datos != null) {
                     //regresamos la respuesta
-                    $data =[
+                    $data = [
                         'status' => 'success',
                         'code' => 200,
                         'message' => 'correcto',
@@ -207,7 +223,7 @@ class StationController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    public function historial(Request $request, JwtAuth $jwt_auth, $idStation = null, $id = null) {
+    public function historial(Request $request, JwtAuth $jwt_auth, $id = null) {
         //respuesta por defecto
         $data = [
             'status' => 'error',
@@ -215,6 +231,8 @@ class StationController extends AbstractController {
             'message' => 'error al recuperar los datos'
         ];
         $em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
+        $conn = $em->getConnection();
         $sensor_repo = $this->getDoctrine()->getRepository(Sensors::class);
         $data_repo = $this->getDoctrine()->getRepository(Data::class);
         //recogemos el token
@@ -224,21 +242,20 @@ class StationController extends AbstractController {
         $authCheck = $jwt_auth->checkToken($token);
 
         if ($authCheck) {
-            //verificamos el sensor
-            $sensorExist = $sensor_repo->findOneBy([
-                'id' => $id,
-                'stationid' => $idStation
-            ]);
-            if ($sensorExist != null) {
 
-                //recuperamos los datos
-                $values = $data_repo->findBy([
-                    'sensorid' => $id
-                ]);
+            //recuperamos los datos
+            $sql = "CALL Historial_Data(:id)";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute(['id' => $id]);
+            $values = $stmt->fetchAll();
+
+
+            if ($values != null) {
+
                 //procesamos para highcharts
                 ////recuperamos los datos
                 foreach ($values as $value) {
-                    $datos[] = array($value->getDate()->getTimestamp(), (int) $value->getValue());
+                    $datos[] = array((int) $value['Date'], (int) $value['Value']);
                 }
                 $data = $datos;
             } else {
@@ -253,7 +270,7 @@ class StationController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    public function tiempo_real(Request $request, JwtAuth $jwt_auth, $option = null, $idStation = null, $id = null) {
+    public function tiempo_real(Request $request, JwtAuth $jwt_auth, $option = null, $id = null) {
         //data por defecto
         $data = [
             'status' => 'error',
@@ -265,33 +282,39 @@ class StationController extends AbstractController {
         //verificamos el token
         $authToken = $jwt_auth->checkToken($token);
         if ($authToken) {
-            if ($option != null && $idStation != null && $id != null) {
+            if ($option != null && $id != null) {
                 $em = $this->getDoctrine()->getManager();
                 $conn = $em->getConnection();
                 (int) $id;
-                (int) $idStation;
                 //recogemos la informacion
                 switch ($option) {
 
                     case 1:
-                        $sql = "CALL TiempoReal_Data1(:id, :idStation)";
+                        $sql = "CALL TiempoReal_Data1(:id)";
                         $stmt = $conn->prepare($sql);
-                        $stmt->execute(['id' => $id, 'idStation' => $idStation]);
-                        $datos = $stmt->fetchAll();
+                        $stmt->execute(['id' => $id]);
+                        $values = $stmt->fetchAll();
                         //preparamos los datos para un highcharts
-                        if ($datos != null) {
+                        if ($values != null) {
                             //regresamos la respuesta
+                            foreach ($values as $value) {
+                                $datos[] = array("x" => (int) $value['x'],"y" => (int) $value['y']);
+                            
+                            }
                             $data = $datos;
                         }
                         break;
                     default:
-                        $sql = "CALL TiempoReal_DataDefault(:id, :idStation)";
+                        $sql = "CALL TiempoReal_DataDefault(:id)";
                         $stmt = $conn->prepare($sql);
-                        $stmt->execute(['id' => $id, 'idStation' => $idStation]);
-                        $datos = $stmt->fetchAll();
+                        $stmt->execute(['id' => $id]);
+                        $values = $stmt->fetchAll();
                         //preparamos los datos para un highcharts
-                        if ($datos != null) {
+                        if ($values != null) {
                             //regresamos la respuesta
+                            foreach ($values as $value) {
+                                $datos[] = array("x" => (int) $value['x'],"y" => (int) $value['y']);
+                            }
                             $data = $datos;
                         }
 
@@ -300,6 +323,56 @@ class StationController extends AbstractController {
             }
         }
         return new JsonResponse($data);
+    }
+
+    /* ------------ ------------- ------------- Nuevo 24 01 2019 ----------- -------------- -------------- */
+
+    public function TenDataBySensor(Request $request, JwtAuth $jwt_auth, $id = null) {
+        //data por defecto
+        $data = [
+            'status' => 'error',
+            'code' => 500,
+            'message' => 'error al recuperar los datos'
+        ];
+        //recogemos el token
+        $token = $request->headers->get('Authorization');
+        //verificamos el token
+        $authToken = $jwt_auth->checkToken($token);
+        if ($authToken) {
+            if ($id != null) {
+                $em = $this->getDoctrine()->getManager();
+                $conn = $em->getConnection();
+                (int) $id;
+                $datos = $this->getDoctrine()->getRepository(Data::class)->findBy([
+                    'sensorid' => $id
+                        ], [
+                    'date' => 'DESC'
+                        ], 10);
+
+
+                //recogemos la informacion
+                /* $qb = $em->createQueryBuilder('d')
+                  ->from('Data', 'd')
+                  ->where('d.SensorId = :id')
+                  ->setParameter('id', $id)
+                  ->orderBy('d.date', 'DESC');
+                  $query = $qb->getQuery();
+
+                  $datos = $query->execute(); */
+                //preparamos los datos para un highcharts
+                if ($datos != null) {
+                    //regresamos la respuesta
+                    
+                    $data = [
+                        'status' => 'success',
+                        'code' => 200,
+                        'message' => 'correcto',
+                        'data' => $datos
+                    ];
+                }
+            }
+        }
+        return $this->resjson($data);
     }
 
 }

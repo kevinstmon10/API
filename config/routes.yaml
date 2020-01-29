@@ -32,12 +32,14 @@ sensors_by_stations:
     path: /stations/{id}/sensors
     controller: App\Controller\StationController::getSensorsByStation
     methods: [GET]
+    
 ##############new 23/01/2019
 sensor:
     path: /sensor/{id}
     controller: App\Controller\StationController::getSensor
     methods: [GET]
 ##############new 23/01/2019
+
 edit_sensor:
     path: /sensor/{id}
     controller: App\Controller\StationController::editSensorsById
@@ -45,17 +47,17 @@ edit_sensor:
 
 
 Last_data:
-    path: /sensor/{id}
+    path: /sensor/{id}/last
     controller: App\Controller\StationController::LastData
     methods: [GET]
     
 historial:
-    path: /historial/station/{idStation}/sensor/{id}
+    path: /historial/sensor/{id}
     controller: App\Controller\StationController::historial
     methods: [GET]
    
 tiempo_real:
-    path: /tr/station/{idStation}/sensor/{id}&{option}
+    path: /tr/sensor/{id}&{option}
     controller: App\Controller\StationController::tiempo_real
     methods: [GET]
 #####Controlador de insercion de datos
@@ -64,3 +66,10 @@ insert:
     path: /insert/{name}
     controller: App\Controller\InsertionController::Insert
     methods: [POST]
+    
+########################## 24 01 2020 #######################
+
+tenData:
+    path: /last_ten/sensor/{id}
+    controller: App\Controller\StationController::TenDataBySensor
+    methods: [GET]
